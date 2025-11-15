@@ -1,8 +1,0 @@
-{
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "cd fitfindr && npm install && npm run build",
-  "devCommand": "cd fitfindr && npm run dev",
-  "installCommand": "cd fitfindr && npm install",
-  "outputDirectory": "fitfindr/.next"
-}
-
