@@ -14,7 +14,8 @@
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f postgres",
-    "setup": "npm run docker:up && timeout /t 5 && npm run db:migrate && npm run db:seed"
+    "setup": "npm run docker:up && timeout /t 5 && npm run db:migrate && npm run db:seed",
+    "test:prod": "node test-production.mjs"
   },
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.7",
