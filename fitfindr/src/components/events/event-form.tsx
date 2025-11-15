@@ -2,7 +2,9 @@
 
 import type { ReactNode } from "react";
 import { EventType, type Location } from "@prisma/client";
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState, useEffect } from "react";
+import { useFormStatus } from "react-dom";
+import { useRouter } from "next/navigation";
 
 import { createEventAction } from "@/actions/event-actions";
 import { defaultActionState } from "@/actions/types";
@@ -17,12 +19,20 @@ type Props = {
 };
 
 export function EventForm({ locations, defaultLocationId }: Props) {
-  const [state, action] = useFormState(createEventAction, defaultActionState);
+  const router = useRouter();
+  const [state, action] = useActionState(createEventAction, defaultActionState);
   const errorFor = (field: string) => state.errors?.[field]?.[0];
   const resolvedLocationId =
     (defaultLocationId &&
       locations.find((location) => location.id === defaultLocationId)?.id) ||
     locations[0]?.id;
+
+  // Redirect to the event page on success
+  useEffect(() => {
+    if (state.success && state.data?.id) {
+      router.push(`/events/${state.data.id}`);
+    }
+  }, [state.success, state.data?.id, router]);
 
   return (
     <form

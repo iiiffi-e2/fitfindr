@@ -5,13 +5,14 @@ import prisma from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/session";
 
 type Props = {
-  searchParams: {
+  searchParams: Promise<{
     locationId?: string;
-  };
+  }>;
 };
 
 export default async function NewEventPage({ searchParams }: Props) {
   const session = await getCurrentUser();
+  const { locationId } = await searchParams;
   const locations = await prisma.location.findMany({
     orderBy: { name: "asc" },
   });
@@ -79,7 +80,7 @@ export default async function NewEventPage({ searchParams }: Props) {
 
       <EventForm
         locations={locations}
-        defaultLocationId={searchParams.locationId}
+        defaultLocationId={locationId}
       />
     </div>
   );

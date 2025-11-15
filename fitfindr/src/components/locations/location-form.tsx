@@ -2,7 +2,9 @@
 
 import type { ReactNode } from "react";
 import { LocationCategory } from "@prisma/client";
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState, useEffect } from "react";
+import { useFormStatus } from "react-dom";
+import { useRouter } from "next/navigation";
 
 import { createLocationAction } from "@/actions/location-actions";
 import { defaultActionState } from "@/actions/types";
@@ -16,11 +18,19 @@ type Props = {
 };
 
 export function LocationForm({ categories }: Props) {
-  const [state, action] = useFormState(
+  const router = useRouter();
+  const [state, action] = useActionState(
     createLocationAction,
     defaultActionState,
   );
   const errorFor = (field: string) => state.errors?.[field]?.[0];
+
+  // Redirect to the location page on success
+  useEffect(() => {
+    if (state.success && state.data?.id) {
+      router.push(`/locations/${state.data.id}`);
+    }
+  }, [state.success, state.data?.id, router]);
 
   return (
     <form
@@ -73,15 +83,6 @@ export function LocationForm({ categories }: Props) {
             <Input name="country" placeholder="USA" required />
           </Field>
         </div>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Latitude" error={errorFor("latitude")}>
-          <Input name="latitude" placeholder="30.2711" />
-        </Field>
-        <Field label="Longitude" error={errorFor("longitude")}>
-          <Input name="longitude" placeholder="-97.7437" />
-        </Field>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

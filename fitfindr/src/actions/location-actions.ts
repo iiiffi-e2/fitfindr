@@ -6,6 +6,7 @@ import { ActionState } from "@/actions/types";
 import prisma from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/session";
 import { locationSchema } from "@/lib/validators";
+import { geocodeAddress } from "@/lib/geocoding";
 
 export async function createLocationAction(
   _prevState: ActionState | undefined,
@@ -46,11 +47,44 @@ export async function createLocationAction(
     };
   }
 
+  // Geocode the address to get coordinates
+  let latitude = parsed.data.latitude ?? null;
+  let longitude = parsed.data.longitude ?? null;
+
+  // If coordinates weren't provided, try to geocode the address
+  if (!latitude || !longitude) {
+    const addressParts = [
+      parsed.data.addressLine1,
+      parsed.data.addressLine2,
+      parsed.data.city,
+      parsed.data.state,
+      parsed.data.postalCode,
+      parsed.data.country,
+    ].filter(Boolean);
+
+    const fullAddress = addressParts.join(", ");
+    console.log("Geocoding address:", fullAddress);
+    
+    try {
+      const geocodingResult = await geocodeAddress(fullAddress);
+
+      if (geocodingResult) {
+        latitude = geocodingResult.coordinates.latitude;
+        longitude = geocodingResult.coordinates.longitude;
+        console.log("Geocoding successful:", { latitude, longitude });
+      } else {
+        console.warn("Geocoding returned no results for:", fullAddress);
+      }
+    } catch (error) {
+      console.error("Geocoding error:", error);
+    }
+  }
+
   const location = await prisma.location.create({
     data: {
       ...parsed.data,
-      latitude: parsed.data.latitude ?? null,
-      longitude: parsed.data.longitude ?? null,
+      latitude,
+      longitude,
       websiteUrl: parsed.data.websiteUrl || null,
       phone: parsed.data.phone || null,
       createdByUserId: session.user.id,

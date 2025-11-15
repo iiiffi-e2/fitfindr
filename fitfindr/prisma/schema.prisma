@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"  // Changed from "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -29,6 +29,11 @@ enum EventType {
   OTHER
 }
 
+enum VoteType {
+  UP
+  DOWN
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -43,6 +48,10 @@ model User {
   sessions Session[]
   locations Location[] @relation("UserLocations")
   events    Event[]    @relation("UserEvents")
+  locationVotes LocationVote[]
+  eventVotes    EventVote[]
+  locationReviews LocationReview[]
+  eventReviews    EventReview[]
 }
 
 model Account {
@@ -104,6 +113,8 @@ model Location {
 
   createdBy User   @relation("UserLocations", fields: [createdByUserId], references: [id], onDelete: Cascade)
   events    Event[]
+  votes     LocationVote[]
+  reviews   LocationReview[]
 
   @@index([category, city])
   @@index([city, state])
@@ -124,6 +135,70 @@ model Event {
 
   location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
   createdBy User    @relation("UserEvents", fields: [createdByUserId], references: [id], onDelete: Cascade)
+  votes     EventVote[]
+  reviews   EventReview[]
 
   @@index([eventType, startDateTime])
+}
+
+model LocationVote {
+  id         String   @id @default(cuid())
+  userId     String
+  locationId String
+  voteType   VoteType
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, locationId])
+  @@index([locationId])
+}
+
+model EventVote {
+  id        String   @id @default(cuid())
+  userId    String
+  eventId   String
+  voteType  VoteType
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
+  @@index([eventId])
+}
+
+model LocationReview {
+  id         String   @id @default(cuid())
+  userId     String
+  locationId String
+  rating     Int
+  comment    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@index([locationId])
+  @@index([userId])
+}
+
+model EventReview {
+  id        String   @id @default(cuid())
+  userId    String
+  eventId   String
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([userId])
 }

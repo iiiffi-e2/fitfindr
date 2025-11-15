@@ -3,43 +3,76 @@ import Link from "next/link";
 
 import { LocationCard } from "@/components/locations/location-card";
 import prisma from "@/lib/prisma";
+import { geocodeAddress, filterByProximity } from "@/lib/geocoding";
 
 type Props = {
-  searchParams: {
+  searchParams: Promise<{
     q?: string;
     category?: string;
-  };
+    radius?: string;
+  }>;
 };
 
 const categories = Object.values(LocationCategory);
 
 export default async function LocationsPage({ searchParams }: Props) {
-  const query = searchParams.q?.toString().trim() ?? "";
+  const { q, category, radius } = await searchParams;
+  const query = q?.toString().trim() ?? "";
   const selectedCategory = categories.includes(
-    searchParams.category as LocationCategory,
+    category as LocationCategory,
   )
-    ? (searchParams.category as LocationCategory)
+    ? (category as LocationCategory)
     : undefined;
+  const searchRadius = radius ? parseInt(radius, 10) : 25;
 
-  const filters = [
-    query
-      ? {
+  let locations;
+  let geocodingResult = null;
+
+  // If there's a location query, try to geocode it
+  if (query) {
+    geocodingResult = await geocodeAddress(query);
+
+    if (geocodingResult) {
+      // Fetch all locations (with optional category filter)
+      const allLocations = await prisma.location.findMany({
+        where: selectedCategory ? { category: selectedCategory } : undefined,
+        orderBy: { createdAt: "desc" },
+      });
+
+      // Filter by proximity
+      locations = filterByProximity(
+        allLocations,
+        geocodingResult.coordinates.latitude,
+        geocodingResult.coordinates.longitude,
+        searchRadius,
+      );
+    } else {
+      // Fallback to text search if geocoding fails
+      const filters = [
+        {
           OR: [
-            { name: { contains: query, mode: "insensitive" } },
-            { city: { contains: query, mode: "insensitive" } },
-            { state: { contains: query, mode: "insensitive" } },
+            { name: { contains: query } },
+            { city: { contains: query } },
+            { state: { contains: query } },
           ],
-        }
-      : undefined,
-    selectedCategory ? { category: selectedCategory } : undefined,
-  ].filter(Boolean);
+        },
+        selectedCategory ? { category: selectedCategory } : undefined,
+      ].filter(Boolean);
 
-  const where = filters.length ? { AND: filters } : undefined;
+      const where = filters.length ? { AND: filters } : undefined;
 
-  const locations = await prisma.location.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-  });
+      locations = await prisma.location.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+      });
+    }
+  } else {
+    // No query, just apply category filter if present
+    locations = await prisma.location.findMany({
+      where: selectedCategory ? { category: selectedCategory } : undefined,
+      orderBy: { createdAt: "desc" },
+    });
+  }
 
   return (
     <div className="space-y-6">
@@ -49,42 +82,68 @@ export default async function LocationsPage({ searchParams }: Props) {
         </p>
         <h1 className="text-3xl font-semibold text-slate-900">Locations</h1>
         <p className="text-sm text-slate-500">
-          Browse fitness-friendly places nearby. Filter by category or search by
-          name and city.
+          Browse fitness-friendly places nearby. Search by location (e.g., "Austin, TX") to find spots near you.
         </p>
       </header>
 
-      <form className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm sm:flex sm:items-end sm:gap-4">
-        <label className="flex-1 text-sm font-semibold text-slate-600">
-          Keyword
-          <input
-            name="q"
-            defaultValue={query}
-            placeholder="Search by name or city"
-            className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
-          />
-        </label>
-        <label className="mt-4 flex-1 text-sm font-semibold text-slate-600 sm:mt-0">
-          Category
+      {geocodingResult && (
+        <div className="rounded-2xl bg-brand/5 border border-brand/20 p-4 text-sm">
+          <p className="font-semibold text-brand">
+            Showing results within {searchRadius} miles of {geocodingResult.displayName}
+          </p>
+          <p className="mt-1 text-slate-600">
+            Found {locations.length} location{locations.length !== 1 ? "s" : ""}
+          </p>
+        </div>
+      )}
+
+      <form className="space-y-4 rounded-3xl border border-slate-100 bg-white p-4 shadow-sm">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="text-sm font-semibold text-slate-600">
+            Location
+            <input
+              name="q"
+              defaultValue={query}
+              placeholder="e.g., Austin, TX or 78701"
+              className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            />
+          </label>
+          <label className="text-sm font-semibold text-slate-600">
+            Category
+            <select
+              name="category"
+              defaultValue={selectedCategory ?? ""}
+              className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            >
+              <option value="">All categories</option>
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category.replaceAll("_", " ")}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <label className="block text-sm font-semibold text-slate-600">
+          Search radius
           <select
-            name="category"
-            defaultValue={selectedCategory ?? ""}
+            name="radius"
+            defaultValue={searchRadius.toString()}
             className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           >
-            <option value="">All categories</option>
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category.replaceAll("_", " ")}
-              </option>
-            ))}
+            <option value="5">5 miles</option>
+            <option value="10">10 miles</option>
+            <option value="25">25 miles</option>
+            <option value="50">50 miles</option>
+            <option value="100">100 miles</option>
           </select>
         </label>
-        <div className="mt-4 flex items-center gap-3 sm:mt-0">
+        <div className="flex items-center gap-3">
           <button
             type="submit"
             className="inline-flex items-center justify-center rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white"
           >
-            Apply
+            Search
           </button>
           {(query || selectedCategory) && (
             <Link
