@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: fitfindr-postgres
+    environment:
+      POSTGRES_USER: fitfindr
+      POSTGRES_PASSWORD: fitfindr
+      POSTGRES_DB: fitfindr
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fitfindr"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    driver: local
+
