@@ -130,10 +130,10 @@ Quick summary:
 
 ## Environment Variables
 
-Your local `.env` file is already configured with:
-- `DATABASE_URL` - PostgreSQL connection
+Your local `.env` file is configured with:
+- `DATABASE_URL` - PostgreSQL connection on port **5434** (to avoid conflict with any existing PostgreSQL on port 5432)
 - `NEXTAUTH_URL` - Local development URL
 - `NEXTAUTH_SECRET` - Generated secret
 
-For production, you'll need to set these in Vercel with production values.
+For production, you'll need to set these in Vercel with production values (using standard port 5432).
 
