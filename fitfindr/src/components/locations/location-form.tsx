@@ -7,7 +7,7 @@ import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 
 import { createLocationAction } from "@/actions/location-actions";
-import { defaultActionState } from "@/actions/types";
+import type { ActionState } from "@/actions/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -17,11 +17,15 @@ type Props = {
   categories: LocationCategory[];
 };
 
+const defaultState: ActionState<{ id: string }> = {
+  success: false,
+};
+
 export function LocationForm({ categories }: Props) {
   const router = useRouter();
   const [state, action] = useActionState(
     createLocationAction,
-    defaultActionState,
+    defaultState,
   );
   const errorFor = (field: string) => state.errors?.[field]?.[0];
 

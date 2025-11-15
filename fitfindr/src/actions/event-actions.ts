@@ -8,7 +8,7 @@ import { getCurrentUser } from "@/lib/session";
 import { eventSchema } from "@/lib/validators";
 
 export async function createEventAction(
-  _prevState: ActionState | undefined,
+  _prevState: ActionState<{ id: string }> | undefined,
   formData: FormData,
 ): Promise<ActionState<{ id: string }>> {
   const session = await getCurrentUser();

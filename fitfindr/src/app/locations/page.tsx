@@ -48,7 +48,7 @@ export default async function LocationsPage({ searchParams }: Props) {
       );
     } else {
       // Fallback to text search if geocoding fails
-      const filters = [
+      const filters: Array<Record<string, unknown>> = [
         {
           OR: [
             { name: { contains: query } },
@@ -56,10 +56,13 @@ export default async function LocationsPage({ searchParams }: Props) {
             { state: { contains: query } },
           ],
         },
-        selectedCategory ? { category: selectedCategory } : undefined,
-      ].filter(Boolean);
+      ];
+      
+      if (selectedCategory) {
+        filters.push({ category: selectedCategory });
+      }
 
-      const where = filters.length ? { AND: filters } : undefined;
+      const where = { AND: filters };
 
       locations = await prisma.location.findMany({
         where,

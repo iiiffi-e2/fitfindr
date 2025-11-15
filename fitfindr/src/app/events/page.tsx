@@ -61,19 +61,22 @@ export default async function EventsPage({ searchParams }: Props) {
 
     if (geocodingResult) {
       // Build filters for event type and date
-      const filters = [
-        selectedType ? { eventType: selectedType } : undefined,
-        dateFilter
-          ? {
-              startDateTime: {
-                gte: dateFilter.start,
-                lte: dateFilter.end,
-              },
-            }
-          : undefined,
-      ].filter(Boolean);
+      const filters: Array<Record<string, unknown>> = [];
+      
+      if (selectedType) {
+        filters.push({ eventType: selectedType });
+      }
+      
+      if (dateFilter) {
+        filters.push({
+          startDateTime: {
+            gte: dateFilter.start,
+            lte: dateFilter.end,
+          },
+        });
+      }
 
-      const where = filters.length ? { AND: filters } : undefined;
+      const where = filters.length > 0 ? { AND: filters } : undefined;
 
       // Fetch all events with their locations
       const allEvents = await prisma.event.findMany({
@@ -84,7 +87,7 @@ export default async function EventsPage({ searchParams }: Props) {
 
       // Filter by proximity based on the event's location
       events = filterByProximity(
-        allEvents.map((event) => ({
+        allEvents.map((event: any) => ({
           ...event,
           latitude: event.location.latitude,
           longitude: event.location.longitude,
@@ -95,7 +98,7 @@ export default async function EventsPage({ searchParams }: Props) {
       );
     } else {
       // Fallback to text search if geocoding fails
-      const filters = [
+      const filters: Array<Record<string, unknown>> = [
         {
           OR: [
             { title: { contains: query } },
@@ -107,18 +110,22 @@ export default async function EventsPage({ searchParams }: Props) {
             },
           ],
         },
-        selectedType ? { eventType: selectedType } : undefined,
-        dateFilter
-          ? {
-              startDateTime: {
-                gte: dateFilter.start,
-                lte: dateFilter.end,
-              },
-            }
-          : undefined,
-      ].filter(Boolean);
+      ];
+      
+      if (selectedType) {
+        filters.push({ eventType: selectedType });
+      }
+      
+      if (dateFilter) {
+        filters.push({
+          startDateTime: {
+            gte: dateFilter.start,
+            lte: dateFilter.end,
+          },
+        });
+      }
 
-      const where = filters.length ? { AND: filters } : undefined;
+      const where = { AND: filters };
 
       events = await prisma.event.findMany({
         where,
@@ -128,19 +135,22 @@ export default async function EventsPage({ searchParams }: Props) {
     }
   } else {
     // No location query, just apply other filters
-    const filters = [
-      selectedType ? { eventType: selectedType } : undefined,
-      dateFilter
-        ? {
-            startDateTime: {
-              gte: dateFilter.start,
-              lte: dateFilter.end,
-            },
-          }
-        : undefined,
-    ].filter(Boolean);
+    const filters: Array<Record<string, unknown>> = [];
+    
+    if (selectedType) {
+      filters.push({ eventType: selectedType });
+    }
+    
+    if (dateFilter) {
+      filters.push({
+        startDateTime: {
+          gte: dateFilter.start,
+          lte: dateFilter.end,
+        },
+      });
+    }
 
-    const where = filters.length ? { AND: filters } : undefined;
+    const where = filters.length > 0 ? { AND: filters } : undefined;
 
     events = await prisma.event.findMany({
       where,
@@ -189,7 +199,7 @@ export default async function EventsPage({ searchParams }: Props) {
               className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
             >
               <option value="">All types</option>
-              {eventTypes.map((type) => (
+              {(eventTypes as string[]).map((type) => (
                 <option key={type} value={type}>
                   {type}
                 </option>
@@ -251,7 +261,7 @@ export default async function EventsPage({ searchParams }: Props) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         {events.length > 0 ? (
-          events.map((event) => <EventCard key={event.id} event={event} />)
+          events.map((event: any) => <EventCard key={event.id} event={event} />)
         ) : (
           <div className="rounded-3xl border border-dashed border-slate-200 bg-white p-6 text-sm text-slate-500">
             No events match your filters. Try expanding your search or{" "}

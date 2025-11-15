@@ -9,7 +9,7 @@ import { locationSchema } from "@/lib/validators";
 import { geocodeAddress } from "@/lib/geocoding";
 
 export async function createLocationAction(
-  _prevState: ActionState | undefined,
+  _prevState: ActionState<{ id: string }> | undefined,
   formData: FormData,
 ): Promise<ActionState<{ id: string }>> {
   const session = await getCurrentUser();

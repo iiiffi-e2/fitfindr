@@ -7,7 +7,7 @@ import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 
 import { createEventAction } from "@/actions/event-actions";
-import { defaultActionState } from "@/actions/types";
+import type { ActionState } from "@/actions/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -18,9 +18,13 @@ type Props = {
   defaultLocationId?: string;
 };
 
+const defaultState: ActionState<{ id: string }> = {
+  success: false,
+};
+
 export function EventForm({ locations, defaultLocationId }: Props) {
   const router = useRouter();
-  const [state, action] = useActionState(createEventAction, defaultActionState);
+  const [state, action] = useActionState(createEventAction, defaultState);
   const errorFor = (field: string) => state.errors?.[field]?.[0];
   const resolvedLocationId =
     (defaultLocationId &&

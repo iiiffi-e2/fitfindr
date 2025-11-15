@@ -16,6 +16,10 @@ type Props = {
   itemType: "location" | "event";
 };
 
+const defaultState: ActionState = {
+  success: false,
+};
+
 export function ReviewForm({ itemId, itemType }: Props) {
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
@@ -27,7 +31,7 @@ export function ReviewForm({ itemId, itemType }: Props) {
 
   const [state, formAction, isPending] = useActionState<ActionState, FormData>(
     action,
-    undefined,
+    defaultState,
   );
 
   useEffect(() => {
