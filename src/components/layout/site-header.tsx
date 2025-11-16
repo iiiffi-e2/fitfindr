@@ -9,7 +9,6 @@ const primaryLinks = [
 ];
 
 const authLinks = [
-  { href: "/profile", label: "Profile" },
   { href: "/locations/new", label: "Add location" },
   { href: "/events/new", label: "Add event" },
 ];
@@ -55,9 +54,12 @@ export function SiteHeader({ session }: Props) {
           <div className="flex items-center gap-2 text-sm">
             {session ? (
               <>
-                <span className="hidden text-slate-500 sm:inline">
+                <Link
+                  href="/profile"
+                  className="hidden text-slate-900 hover:text-brand hover:underline sm:inline"
+                >
                   Hi, {session.user.name ?? "friend"}
-                </span>
+                </Link>
                 <LogoutButton />
               </>
             ) : (
