@@ -1,15 +1,25 @@
-import type { Event, Location } from "@prisma/client";
 import { CalendarDays, MapPin } from "lucide-react";
 import Link from "next/link";
 
 import { formatDateRange } from "@/lib/utils";
 
-type EventWithLocation = Event & {
-  location: Location;
+type EventCardProps = {
+  id: string;
+  title: string;
+  description: string;
+  eventType: string;
+  startDateTime: Date;
+  endDateTime: Date | null;
+  location: {
+    id: string;
+    name: string;
+    city: string;
+    state: string;
+  };
 };
 
 type Props = {
-  event: EventWithLocation;
+  event: EventCardProps;
 };
 
 export function EventCard({ event }: Props) {

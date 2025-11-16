@@ -1,9 +1,17 @@
-import { type Location } from "@prisma/client";
 import { MapPin } from "lucide-react";
 import Link from "next/link";
 
+type LocationCardProps = {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  city: string;
+  state: string;
+};
+
 type Props = {
-  location: Location;
+  location: LocationCardProps;
 };
 
 export function LocationCard({ location }: Props) {
