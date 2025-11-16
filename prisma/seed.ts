@@ -5,6 +5,13 @@ import { hash } from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
+  // SAFETY CHECK: Never delete data in production!
+  if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+    console.error('❌ ERROR: Seed script should not be run in production!');
+    console.error('This would delete all production data.');
+    process.exit(1);
+  }
+
   await prisma.eventReview.deleteMany();
   await prisma.locationReview.deleteMany();
   await prisma.eventVote.deleteMany();
