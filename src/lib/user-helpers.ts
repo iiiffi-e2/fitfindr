@@ -129,7 +129,11 @@ export async function getUserProfile(
       },
       eventReviews: {
         orderBy: { createdAt: "desc" },
-        include: {
+        select: {
+          id: true,
+          rating: true,
+          comment: true,
+          createdAt: true,
           event: {
             select: {
               id: true,
@@ -144,13 +148,6 @@ export async function getUserProfile(
               },
             },
           },
-        },
-        select: {
-          id: true,
-          rating: true,
-          comment: true,
-          createdAt: true,
-          event: true,
         },
       },
       locationVotes: true,
