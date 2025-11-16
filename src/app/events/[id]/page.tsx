@@ -29,14 +29,6 @@ export default async function EventDetailPage({ params }: Props) {
       reviews: {
         include: { user: { select: { name: true, email: true } } },
         orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          rating: true,
-          comment: true,
-          createdAt: true,
-          userId: true,
-          user: true,
-        },
       },
     },
   });

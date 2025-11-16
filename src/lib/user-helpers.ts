@@ -86,16 +86,6 @@ export async function getUserProfile(
       },
       events: {
         orderBy: { createdAt: "desc" },
-        include: {
-          location: {
-            select: {
-              id: true,
-              name: true,
-              city: true,
-              state: true,
-            },
-          },
-        },
         select: {
           id: true,
           title: true,
@@ -104,12 +94,6 @@ export async function getUserProfile(
           startDateTime: true,
           endDateTime: true,
           createdAt: true,
-          location: true,
-        },
-      },
-      locationReviews: {
-        orderBy: { createdAt: "desc" },
-        include: {
           location: {
             select: {
               id: true,
@@ -119,12 +103,22 @@ export async function getUserProfile(
             },
           },
         },
+      },
+      locationReviews: {
+        orderBy: { createdAt: "desc" },
         select: {
           id: true,
           rating: true,
           comment: true,
           createdAt: true,
-          location: true,
+          location: {
+            select: {
+              id: true,
+              name: true,
+              city: true,
+              state: true,
+            },
+          },
         },
       },
       eventReviews: {
