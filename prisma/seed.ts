@@ -5,6 +5,10 @@ import { hash } from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
+  await prisma.eventReview.deleteMany();
+  await prisma.locationReview.deleteMany();
+  await prisma.eventVote.deleteMany();
+  await prisma.locationVote.deleteMany();
   await prisma.event.deleteMany();
   await prisma.location.deleteMany();
   await prisma.user.deleteMany();
@@ -16,6 +20,16 @@ async function main() {
       name: "Avery Runner",
       email: "demo@fitfindr.com",
       passwordHash,
+      bio: "Fitness enthusiast and community organizer. Love finding new spots to work out and connecting with fellow fitness lovers!",
+    },
+  });
+
+  const secondUser = await prisma.user.create({
+    data: {
+      name: "Jordan Fitness",
+      email: "jordan@fitfindr.com",
+      passwordHash,
+      bio: "Yoga instructor and runner. Always looking for the next great workout spot.",
     },
   });
 
@@ -135,6 +149,7 @@ async function main() {
     },
   ];
 
+  const events = [];
   for (const event of eventsData) {
     const location = map.get(event.locationName);
     if (!location) continue;
@@ -146,7 +161,7 @@ async function main() {
     const end = new Date(start.getTime());
     end.setMinutes(start.getMinutes() + event.durationMinutes);
 
-    await prisma.event.create({
+    const createdEvent = await prisma.event.create({
       data: {
         title: event.title,
         description: event.description,
@@ -156,6 +171,37 @@ async function main() {
         endDateTime: end,
         recurringRule: event.recurringRule ?? null,
         createdByUserId: demoUser.id,
+      },
+    });
+    events.push(createdEvent);
+  }
+
+  // Add some reviews from the second user
+  await prisma.locationReview.create({
+    data: {
+      userId: secondUser.id,
+      locationId: locations[0].id,
+      rating: 5,
+      comment: "Amazing gym with great equipment and friendly staff. The HIIT classes are intense but worth it!",
+    },
+  });
+
+  await prisma.locationReview.create({
+    data: {
+      userId: secondUser.id,
+      locationId: locations[1].id,
+      rating: 4,
+      comment: "Beautiful studio with natural light. The instructors are knowledgeable and welcoming.",
+    },
+  });
+
+  if (events.length > 0) {
+    await prisma.eventReview.create({
+      data: {
+        userId: secondUser.id,
+        eventId: events[0].id,
+        rating: 5,
+        comment: "Great way to start the day! The coaches are motivating and the group energy is fantastic.",
       },
     });
   }

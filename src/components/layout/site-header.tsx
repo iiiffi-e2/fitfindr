@@ -9,6 +9,7 @@ const primaryLinks = [
 ];
 
 const authLinks = [
+  { href: "/profile", label: "Profile" },
   { href: "/locations/new", label: "Add location" },
   { href: "/events/new", label: "Add event" },
 ];

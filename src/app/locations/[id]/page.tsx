@@ -25,6 +25,9 @@ export default async function LocationDetailPage({ params }: Props) {
   const location = await prisma.location.findUnique({
     where: { id },
     include: {
+      createdBy: {
+        select: { id: true, name: true },
+      },
       events: {
         include: { location: true },
         orderBy: { startDateTime: "asc" },
@@ -33,6 +36,14 @@ export default async function LocationDetailPage({ params }: Props) {
       reviews: {
         include: { user: { select: { name: true, email: true } } },
         orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          rating: true,
+          comment: true,
+          createdAt: true,
+          userId: true,
+          user: true,
+        },
       },
     },
   });
@@ -59,6 +70,15 @@ export default async function LocationDetailPage({ params }: Props) {
         <h1 className="mt-2 text-3xl font-semibold text-slate-900">
           {location.name}
         </h1>
+        <p className="mt-2 text-sm text-slate-500">
+          Created by{" "}
+          <Link
+            href={`/profile/${location.createdBy.id}`}
+            className="font-medium text-brand hover:underline"
+          >
+            {location.createdBy.name || "Anonymous"}
+          </Link>
+        </p>
         <p className="mt-3 whitespace-pre-line text-slate-600">
           {location.description}
         </p>

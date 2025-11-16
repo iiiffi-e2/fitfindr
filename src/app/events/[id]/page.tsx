@@ -21,11 +21,22 @@ export default async function EventDetailPage({ params }: Props) {
   const event = await prisma.event.findUnique({
     where: { id },
     include: {
+      createdBy: {
+        select: { id: true, name: true },
+      },
       location: true,
       votes: true,
       reviews: {
         include: { user: { select: { name: true, email: true } } },
         orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          rating: true,
+          comment: true,
+          createdAt: true,
+          userId: true,
+          user: true,
+        },
       },
     },
   });
@@ -52,6 +63,15 @@ export default async function EventDetailPage({ params }: Props) {
         <h1 className="mt-2 text-3xl font-semibold text-slate-900">
           {event.title}
         </h1>
+        <p className="mt-2 text-sm text-slate-500">
+          Created by{" "}
+          <Link
+            href={`/profile/${event.createdBy.id}`}
+            className="font-medium text-brand hover:underline"
+          >
+            {event.createdBy.name || "Anonymous"}
+          </Link>
+        </p>
         <p className="mt-3 text-slate-600">{event.description}</p>
 
         <div className="mt-4">

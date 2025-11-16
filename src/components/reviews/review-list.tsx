@@ -1,11 +1,13 @@
 import { Star } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import Link from "next/link";
 
 type Review = {
   id: string;
   rating: number;
   comment: string;
   createdAt: Date;
+  userId: string;
   user: {
     name: string | null;
     email: string;
@@ -35,9 +37,12 @@ export function ReviewList({ reviews }: Props) {
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <p className="font-semibold text-slate-900">
+                <Link
+                  href={`/profile/${review.userId}`}
+                  className="font-semibold text-slate-900 hover:text-brand hover:underline"
+                >
                   {review.user.name || "Anonymous"}
-                </p>
+                </Link>
                 <div className="flex items-center gap-1">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Star
